@@ -1,0 +1,149 @@
+:root {
+  color: #ebf2ff;
+  background:
+    radial-gradient(circle at top, rgba(61, 102, 255, 0.35), transparent 35%),
+    linear-gradient(180deg, #08111f 0%, #0d1727 100%);
+  font-family:
+    "Sora",
+    "Space Grotesk",
+    system-ui,
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.shell {
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 64px;
+}
+
+.panel {
+  background: rgba(6, 12, 24, 0.72);
+  border: 1px solid rgba(133, 161, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+  padding: 28px;
+}
+
+.panel + .panel {
+  margin-top: 20px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1.02;
+}
+
+.lede,
+.snapshot pre {
+  color: #c7d3f6;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #8eb1ff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #9bb4ec;
+  font-size: 0.92rem;
+}
+
+input {
+  width: 100%;
+  border: 1px solid rgba(133, 161, 255, 0.3);
+  border-radius: 14px;
+  background: rgba(7, 16, 32, 0.85);
+  color: #ebf2ff;
+  padding: 12px 14px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #8eb1ff 0%, #5e7cff 100%);
+  color: #06101f;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 12px 18px;
+}
+
+button.secondary {
+  background: rgba(142, 177, 255, 0.14);
+  color: #d9e4ff;
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid rgba(142, 177, 255, 0.24);
+  color: #d9e4ff;
+}
+
+.snapshot-header {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.snapshot pre {
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(100% - 20px, 960px);
+    padding-top: 20px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .snapshot-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
