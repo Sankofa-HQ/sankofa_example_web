@@ -108,6 +108,11 @@ button {
   padding: 12px 18px;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 button.secondary {
   background: rgba(142, 177, 255, 0.14);
   color: #d9e4ff;
@@ -124,6 +129,32 @@ button.ghost {
   display: flex;
   gap: 12px;
   justify-content: space-between;
+}
+
+.config-grid {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.config-grid p,
+.status {
+  margin: 0;
+}
+
+.status {
+  color: #d9e4ff;
+  font-weight: 600;
+}
+
+.status.error {
+  color: #ffb3ba;
+}
+
+.panel code {
+  background: rgba(142, 177, 255, 0.12);
+  border-radius: 8px;
+  padding: 2px 6px;
 }
 
 .snapshot pre {
