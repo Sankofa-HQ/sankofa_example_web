@@ -16,6 +16,8 @@ export default function App() {
   
   const [snapshot, setSnapshot] = useState<SankofaClientSnapshot | null>(null);
   const [userId, setUserId] = useState("demo-user@example.com");
+  const [userName, setUserName] = useState("Demo User");
+  const [avatarUrl, setAvatarUrl] = useState("https://i.pravatar.cc/150?u=demo");
   const [company, setCompany] = useState("Sankofa Labs");
   const [status, setStatus] = useState("Waiting for SDK initialization.");
   const [ready, setReady] = useState(false);
@@ -122,9 +124,14 @@ export default function App() {
 
   const handleIdentify = async () => {
     await runAction("Identify user", async () => {
+      // 1. First, tell Sankofa who this user is using their internal database ID
       await Sankofa.identify(userId);
+
+      // 2. Then, set their profile properties so the dashboard can display them
       await Sankofa.setPerson({
+        name: userName,
         email: userId,
+        avatar: avatarUrl,
         company: company,
         plan: "enterprise"
       });
@@ -243,12 +250,30 @@ export default function App() {
             />
           </div>
           <div>
+            <label htmlFor="user-name">Customer Name</label>
+            <input
+              id="user-name"
+              value={userName}
+              onChange={(event) => setUserName(event.target.value)}
+              placeholder="e.g. Demo User"
+            />
+          </div>
+          <div>
             <label htmlFor="company">Organization Name</label>
             <input
               id="company"
               value={company}
               onChange={(event) => setCompany(event.target.value)}
               placeholder="e.g. Sankofa Labs"
+            />
+          </div>
+          <div>
+            <label htmlFor="avatar">Avatar URL</label>
+            <input
+              id="avatar"
+              value={avatarUrl}
+              onChange={(event) => setAvatarUrl(event.target.value)}
+              placeholder="https://..."
             />
           </div>
         </div>
