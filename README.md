@@ -1,6 +1,6 @@
 # Sankofa Web Example
 
-Minimal React + Vite example for the browser SDK and rrweb replay plugin.
+Minimal React + Vite example for the browser SDK and session replay recording.
 
 ## Run
 

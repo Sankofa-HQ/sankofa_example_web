@@ -5,7 +5,7 @@ import {
   resolveBatchUrl,
   resolveReplayChunkUrl,
 } from "@sankofa/browser";
-import { rrwebReplayPlugin } from "@sankofa/replay-rrweb";
+import { rrwebReplayPlugin as sessionReplayPlugin } from "@sankofa/replay-rrweb";
 
 export default function App() {
   const apiKey = import.meta.env.VITE_SANKOFA_API_KEY?.trim() ?? "";
@@ -13,6 +13,7 @@ export default function App() {
   const replayEnabled = import.meta.env.VITE_SANKOFA_ENABLE_REPLAY !== "false";
   const ingestEnvironment = apiKey.startsWith("sk_test_") ? "test" : "live";
   const sdkEnabled = apiKey.length > 0;
+  
   const [snapshot, setSnapshot] = useState<SankofaClientSnapshot | null>(null);
   const [userId, setUserId] = useState("demo-user@example.com");
   const [company, setCompany] = useState("Sankofa Labs");
@@ -45,7 +46,7 @@ export default function App() {
           endpoint,
           debug: true,
           flushIntervalMs: 2_000,
-          plugins: replayEnabled ? [rrwebReplayPlugin()] : [],
+          plugins: replayEnabled ? [sessionReplayPlugin()] : [],
         });
 
         await Sankofa.flush({
@@ -60,19 +61,17 @@ export default function App() {
         setReady(true);
         setStatus(
           replayEnabled
-            ? "SDK ready. Pageview sent. Replay recording is enabled if the backend supports /api/replay/chunk."
-            : "SDK ready. Pageview sent.",
+            ? "SDK Ready. Live session recording is active. Pageview sent automatically."
+            : "SDK Ready. Live tracking active (Session recording disabled).",
         );
       } catch (initError) {
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         const message = formatError(initError);
         setReady(false);
         setSnapshot(null);
         setError(message);
-        setStatus(`Initialization failed: ${message}`);
+        setStatus(`Initialization Failed: ${message}`);
       } finally {
         if (!cancelled) {
           setInitializing(false);
@@ -97,46 +96,47 @@ export default function App() {
   const runAction = async (label: string, action: () => Promise<void>) => {
     try {
       setError(null);
-      setStatus(`${label}...`);
+      setStatus(`${label} in progress...`);
       await action();
       await Sankofa.flush({
         reason: "manual",
       });
       refreshSnapshot();
-      setStatus(`${label} complete. Check the dashboard and browser console for upload details.`);
+      setStatus(`✅ ${label} completed successfully.`);
     } catch (actionError) {
       const message = formatError(actionError);
       setError(message);
-      setStatus(`${label} failed: ${message}`);
+      setStatus(`❌ ${label} Failed: ${message}`);
     }
   };
 
   const handleTrack = async () => {
-    await runAction("Track CTA click", async () => {
-      await Sankofa.track("web_example_button_clicked", {
-        area: "hero",
-        variant: "primary",
-        revenue: 149,
+    await runAction("Track custom event", async () => {
+      await Sankofa.track("premium_feature_clicked", {
+        area: "hero_section",
+        feature_name: "analytics_dashboard",
+        revenue_potential: 149,
       });
     });
   };
 
   const handleIdentify = async () => {
     await runAction("Identify user", async () => {
-      await Sankofa.identify(userId, {
+      await Sankofa.identify(userId);
+      await Sankofa.setPerson({
         email: userId,
-        company,
-        plan: "trial",
+        company: company,
+        plan: "enterprise"
       });
     });
   };
 
   const handlePeopleSet = async () => {
-    await runAction("Update person profile", async () => {
-      await Sankofa.peopleSet({
+    await runAction("Update profile traits", async () => {
+      await Sankofa.setPerson({
         company,
-        lifecycle_stage: "activated",
-        seats: 4,
+        lifecycle_stage: "power_user",
+        seats_active: 12,
       });
     });
   };
@@ -148,7 +148,7 @@ export default function App() {
   };
 
   const handleFlush = async () => {
-    await runAction("Flush queue", async () => {
+    await runAction("Force flush queue", async () => {
       await Sankofa.flush({
         reason: "manual",
         keepalive: true,
@@ -159,102 +159,118 @@ export default function App() {
   return (
     <main className="shell">
       <section className="panel hero">
-        <p className="eyebrow">Sankofa Browser SDK</p>
-        <h1>Web example with rrweb replay</h1>
+        <p className="eyebrow">Sankofa Developer SDK</p>
+        <h1>Next-Gen Product Analytics</h1>
         <p className="lede">
-          This example initializes the browser SDK, keeps pageview autocapture on,
-          and records rrweb replay chunks when replay is enabled.
+          Welcome to the Sankofa interactive sandbox. Test the core browser SDK capabilities in real-time.
+          Experience seamless event tracking, identity resolution, and high-fidelity session replays.
         </p>
+        
+        <div className="status-indicator flex items-center gap-2">
+          {ready ? "🟢" : error ? "🔴" : "🟡"} {status}
+        </div>
+
         <div className="config-grid">
           <p>
-            <strong>Configured endpoint:</strong> <code>{endpoint}</code>
+            <strong>Core Endpoint</strong>
+            <code>{endpoint}</code>
           </p>
           <p>
-            <strong>Resolved batch URL:</strong>{" "}
+            <strong>Analytics Pipeline</strong>
             <code>{resolveBatchUrl(endpoint).toString()}</code>
           </p>
           <p>
-            <strong>Resolved replay URL:</strong>{" "}
+            <strong>Session Replay Service</strong>
             <code>{resolveReplayChunkUrl(endpoint).toString()}</code>
           </p>
           <p>
-            <strong>Replay enabled:</strong> <code>{String(replayEnabled)}</code>
+            <strong>Replay Status</strong>
+            <span style={{ color: replayEnabled ? 'var(--success)' : 'var(--error)', fontWeight: 600 }}>
+              {replayEnabled ? "Active & Recording" : "Disabled"}
+            </span>
           </p>
           <p>
-            <strong>Ingest environment:</strong> <code>{ingestEnvironment}</code>
+            <strong>Ingest Environment</strong>
+            <span style={{ textTransform: 'uppercase', letterSpacing: 1 }}>{ingestEnvironment}</span>
           </p>
         </div>
-        {!sdkEnabled ? (
-          <p className="lede">
-            Set <code>VITE_SANKOFA_API_KEY</code> in <code>.env</code> to enable the
-            live SDK controls below.
+
+        {!sdkEnabled && (
+          <p className="lede" style={{ color: '#fca5a5' }}>
+            ⚠️ Environment missing: Set <code>VITE_SANKOFA_API_KEY</code> in <code>.env.local</code> to awake the SDK.
           </p>
-        ) : null}
-        <p className="status">{status}</p>
-        {error ? <p className="status error">{error}</p> : null}
-        <p className="lede">
-          For the Vite example to reach the engine from <code>http://localhost:5173</code>,
-          add that origin to <code>CORS_ALLOWED_ORIGINS</code>. Replay uploads also require
-          the enterprise engine build and B2 replay storage configuration.
-        </p>
-        {ingestEnvironment === "test" ? (
-          <p className="status">
-            This API key is a <code>test</code> key. The dashboard must be switched to the
-            <code> test </code> environment or the events view will stay empty.
+        )}
+        
+        {ingestEnvironment === "test" && sdkEnabled && (
+          <p className="status" style={{ color: '#fbbf24', marginTop: 12 }}>
+            You are using a <strong>TEST</strong> environment key. Toggle to "Test Data" in your Sankofa dashboard to view these events.
           </p>
-        ) : null}
+        )}
+
         <div className="actions">
           <button disabled={!ready} onClick={handleTrack}>
-            Track CTA click
+            Simulate User Action
           </button>
           <button className="secondary" disabled={!ready} onClick={handleFlush}>
-            Flush now
+            Force Sync
           </button>
           <button
             className="ghost"
             disabled={!sdkEnabled || initializing}
             onClick={() => setRetryToken((value) => value + 1)}
           >
-            {initializing ? "Initializing..." : "Retry init"}
+            {initializing ? "Mounting..." : "Remount SDK"}
           </button>
         </div>
       </section>
 
-      <section className="panel grid">
-        <div>
-          <label htmlFor="user-id">User ID</label>
-          <input
-            id="user-id"
-            value={userId}
-            onChange={(event) => setUserId(event.target.value)}
-          />
+      <section className="panel">
+        <div style={{ marginBottom: 32 }}>
+          <h2 style={{ margin: '0 0 8px', fontSize: '1.5rem' }}>Identity Management</h2>
+          <p className="lede" style={{ fontSize: '0.95rem', marginBottom: 0 }}>
+            Merge anonymous behavioral data with known customer records dynamically.
+          </p>
         </div>
-        <div>
-          <label htmlFor="company">Company</label>
-          <input
-            id="company"
-            value={company}
-            onChange={(event) => setCompany(event.target.value)}
-          />
+        
+        <div className="grid">
+          <div>
+            <label htmlFor="user-id">Customer Target ID</label>
+            <input
+              id="user-id"
+              value={userId}
+              onChange={(event) => setUserId(event.target.value)}
+              placeholder="e.g. user-123"
+            />
+          </div>
+          <div>
+            <label htmlFor="company">Organization Name</label>
+            <input
+              id="company"
+              value={company}
+              onChange={(event) => setCompany(event.target.value)}
+              placeholder="e.g. Sankofa Labs"
+            />
+          </div>
         </div>
+        
         <div className="actions">
           <button disabled={!ready} onClick={handleIdentify}>
-            Identify
+            Identify Customer
           </button>
           <button className="secondary" disabled={!ready} onClick={handlePeopleSet}>
-            peopleSet
+            Update Traits
           </button>
           <button className="ghost" disabled={!ready} onClick={handleReset}>
-            Reset
+            Anonymize Session
           </button>
         </div>
       </section>
 
       <section className="panel snapshot">
         <div className="snapshot-header">
-          <h2>Current client snapshot</h2>
-          <button className="secondary" disabled={!ready} onClick={refreshSnapshot}>
-            Refresh snapshot
+          <h2>Runtime Diagnostic Snapshot</h2>
+          <button className="secondary" disabled={!ready} onClick={refreshSnapshot} style={{ padding: '10px 16px', fontSize: '0.85rem' }}>
+            Refresh State
           </button>
         </div>
         <pre>{JSON.stringify(snapshot, null, 2)}</pre>
@@ -267,6 +283,5 @@ function formatError(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
-
   return String(error);
 }
