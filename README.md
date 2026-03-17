@@ -1,25 +1,64 @@
-# Sankofa Web Example
+# Sankofa Web Sandbox (React + Vite)
 
-Minimal React + Vite example for the browser SDK and session replay recording.
+A modern, interactive sandbox for testing the **Sankofa Web SDK**. This example project demonstrates how to integrate real-time product analytics and high-fidelity session replays into a React application.
 
-## Run
+---
 
-1. `cp .env.example .env`
-2. `npm install`
-3. `npm run dev`
+## ✨ Features
 
-Use the engine base URL for `VITE_SANKOFA_ENDPOINT`, for example `http://localhost:8080`.
+- **Interactive Sandbox**: Test event tracking and identity management in a live, visual environment.
+- **Identity Resolution**: Complete flows for `identify()`, `setPerson()`, and `reset()`, allowing you to merge behavioral data with customer profiles dynamically.
+- **Session Replay (RRWeb)**: High-fidelity session recording integrated with the SDK. The sandbox provides a real-time status indicator for the recording service.
+- **Runtime Diagnostics**: A "Diagnostic Snapshot" view that shows the current internal state of the Sankofa client, including queued events and identity data.
+- **Automated Pageview Tracking**: Demonstrates how the SDK automatically captures pageviews upon initialization.
+- **Tailwind-Powered UI**: A clean, premium design with a dedicated dashboard for testing different tracking scenarios.
 
-If you are serving the example from Vite on `http://localhost:5173`, add that origin to
-`CORS_ALLOWED_ORIGINS` on the engine or the browser will block event uploads.
+---
 
-If you use an API key with the `sk_test_` prefix, Sankofa writes the data to the `test`
-environment. Switch the dashboard environment to `test` or the Events page will look empty.
+## 🚀 Getting Started
 
-Replay uploads require the enterprise engine build plus the replay storage variables
-(`B2_ENDPOINT`, `B2_KEY_ID`, `B2_APP_KEY`, `B2_BUCKET_NAME`) because replay ingest lives
-under `/api/replay/chunk`.
+### 1. Prerequisites
+- **Node.js 20+**
+- **NPM** or **Yarn**
+- **Sankofa Engine** (Running locally on port 8080)
 
-## Build
+### 2. Setup
+Copy the example environment file and install dependencies:
+```bash
+cp .env.example .env.local
+npm install --legacy-peer-deps
+```
 
-`npm run build`
+### 3. Configuration
+Edit `.env.local` and add your project's API key:
+```env
+VITE_SANKOFA_API_KEY=your_project_api_key_here
+VITE_SANKOFA_ENDPOINT=http://localhost:8080
+```
+
+### 4. Run Development Server
+```bash
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) to access the interactive sandbox.
+
+---
+
+## 📂 Key Code References
+
+- **Initialization Loop**: See the `useEffect` hook in `src/App.tsx` for how the SDK is dynamically mounted and unmounted.
+- **Event Tracking**: Explore `handleTrack` to see custom event payloads with properties.
+- **Identity Management**: Check `handleIdentify` and `handlePeopleSet` for examples of setting customer traits (email, name, company, avatar).
+- **Session Replay Integration**: See how the `rrwebReplayPlugin` is passed to the SDK during initialization.
+
+---
+
+## 🔧 CORS Note
+If you are running this example locally, ensure the Go Engine's `CORS_ALLOWED_ORIGINS` includes `http://localhost:5173`. Otherwise, the browser may block event uploads.
+
+---
+
+## 🛡 License
+
+This project is licensed under the MIT License.
