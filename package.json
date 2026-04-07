@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@sankofa/browser": "file:../../sdk/web/packages/browser",
-    "@sankofa/replay-rrweb": "file:../../sdk/web/packages/replay-rrweb",
+    "@sankofa/browser": "file:../../sdks/sankofa_sdk_web/packages/browser",
+    "@sankofa/replay-rrweb": "file:../../sdks/sankofa_sdk_web/packages/replay-rrweb",
     "pako": "^2.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

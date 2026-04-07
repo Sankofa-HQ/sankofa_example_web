@@ -8,7 +8,7 @@ import {
 import { rrwebReplayPlugin as sessionReplayPlugin } from "@sankofa/replay-rrweb";
 
 export default function App() {
-  const apiKey = import.meta.env.VITE_SANKOFA_API_KEY?.trim() ?? "";
+  const apiKey = import.meta.env.VITE_SANKOFA_API_KEY?.trim() ?? "sk_test_b25f965d194d55bd071fb23921401e7c";
   const endpoint = import.meta.env.VITE_SANKOFA_ENDPOINT ?? "http://localhost:8080";
   const replayEnabled = import.meta.env.VITE_SANKOFA_ENABLE_REPLAY !== "false";
   const ingestEnvironment = apiKey.startsWith("sk_test_") ? "test" : "live";

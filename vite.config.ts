@@ -8,11 +8,11 @@ export default defineConfig({
     alias: {
       "@sankofa/browser": path.resolve(
         __dirname,
-        "../../sdk/web/packages/browser/src/index.ts",
+        "../../sdks/sankofa_sdk_web/packages/browser/src/index.ts",
       ),
       "@sankofa/replay-rrweb": path.resolve(
         __dirname,
-        "../../sdk/web/packages/replay-rrweb/src/index.ts",
+        "../../sdks/sankofa_sdk_web/packages/replay-rrweb/src/index.ts",
       ),
     },
     preserveSymlinks: true,

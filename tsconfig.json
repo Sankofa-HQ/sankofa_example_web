@@ -13,8 +13,8 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
-      "@sankofa/browser": ["../../sdk/web/packages/browser/src/index.ts"],
-      "@sankofa/replay-rrweb": ["../../sdk/web/packages/replay-rrweb/src/index.ts"]
+      "@sankofa/browser": ["../../sdks/sankofa_sdk_web/packages/browser/src/index.ts"],
+      "@sankofa/replay-rrweb": ["../../sdks/sankofa_sdk_web/packages/replay-rrweb/src/index.ts"]
     },
     "resolveJsonModule": true,
     "isolatedModules": true,
