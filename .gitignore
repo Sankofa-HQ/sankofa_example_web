@@ -10,3 +10,18 @@ coverage/
 *.tsbuildinfo
 npm-debug.log*
 .DS_Store
+
+# ── Sankofa Deploy ─────────────────────────────────────────────
+# Sankofa Deploy — CLI credentials (never commit)
+.sankofa.json
+# Sankofa Deploy — build/ota output
+build/
+build/ota-stage/
+build/distribution/
+build/xcodebuild.log
+build/xcodebuild-archive.log
+build/xcodebuild-export.log
+build/*.ios.zip
+build/*.ota.zip
+build/*.app.zip
+# ── /Sankofa Deploy ────────────────────────────────────────────
