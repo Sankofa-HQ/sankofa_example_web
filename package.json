@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@sankofa/browser": "file:../../sdks/sankofa_sdk_web/packages/browser",
+    "@sankofa/config": "file:../../sdks/sankofa_sdk_web/packages/config",
     "@sankofa/replay-rrweb": "file:../../sdks/sankofa_sdk_web/packages/replay-rrweb",
+    "@sankofa/switch": "file:../../sdks/sankofa_sdk_web/packages/switch",
     "pako": "^2.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

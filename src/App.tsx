@@ -6,6 +6,10 @@ import {
   resolveReplayChunkUrl,
 } from "@sankofa/browser";
 import { rrwebReplayPlugin as sessionReplayPlugin } from "@sankofa/replay-rrweb";
+import { switchPlugin } from "@sankofa/switch";
+import { configPlugin } from "@sankofa/config";
+import { FlagsLabPanel } from "./FlagsLabPanel";
+import { DEMO_FLAG_DEFAULTS, DEMO_CONFIG_DEFAULTS } from "./sankofaDemo";
 
 export default function App() {
   const apiKey = import.meta.env.VITE_SANKOFA_API_KEY?.trim() ?? "sk_test_b25f965d194d55bd071fb23921401e7c";
@@ -43,12 +47,21 @@ export default function App() {
         setError(null);
         setStatus("Initializing Sankofa...");
 
+        const plugins = [
+          // Switch & Config always ship in this example — they feed the
+          // FlagsLabPanel below. Bundled defaults keep the lab
+          // renderable before the first handshake completes.
+          switchPlugin({ defaults: DEMO_FLAG_DEFAULTS }),
+          configPlugin({ defaults: DEMO_CONFIG_DEFAULTS }),
+        ];
+        if (replayEnabled) plugins.push(sessionReplayPlugin() as never);
+
         await Sankofa.init({
           apiKey,
           endpoint,
           debug: true,
           flushIntervalMs: 2_000,
-          plugins: replayEnabled ? [sessionReplayPlugin()] : [],
+          plugins,
         });
 
         await Sankofa.flush({
@@ -290,6 +303,18 @@ export default function App() {
           </button>
         </div>
       </section>
+
+      <FlagsLabPanel
+        ready={ready}
+        onRefresh={async () => {
+          // Refetches the handshake and reroutes new decisions to every
+          // plugin. Dashboard edits land in the lab panel within one
+          // round-trip.
+          if (!ready) return;
+          await Sankofa.flush({ reason: "manual" });
+          refreshSnapshot();
+        }}
+      />
 
       <section className="panel snapshot">
         <div className="snapshot-header">
