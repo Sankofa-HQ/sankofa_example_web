@@ -6,9 +6,11 @@ import {
   resolveReplayChunkUrl,
 } from "@sankofa/browser";
 import { rrwebReplayPlugin as sessionReplayPlugin } from "@sankofa/replay-rrweb";
-import { switchPlugin } from "@sankofa/switch";
-import { configPlugin } from "@sankofa/config";
+import { switchPlugin, getSwitch } from "@sankofa/switch";
+import { configPlugin, getConfig } from "@sankofa/config";
+import { catchPlugin, getCatch } from "@sankofa/catch";
 import { FlagsLabPanel } from "./FlagsLabPanel";
+import { CatchCrashGallery } from "./CatchCrashGallery";
 import { DEMO_FLAG_DEFAULTS, DEMO_CONFIG_DEFAULTS } from "./sankofaDemo";
 
 export default function App() {
@@ -53,6 +55,28 @@ export default function App() {
           // renderable before the first handshake completes.
           switchPlugin({ defaults: DEMO_FLAG_DEFAULTS }),
           configPlugin({ defaults: DEMO_CONFIG_DEFAULTS }),
+          // Catch wires the flag + config snapshots into every error
+          // event so the dashboard can show "these flags were ON when
+          // this crashed". Also routes uncaught errors + unhandled
+          // rejections to /api/catch/events.
+          catchPlugin({
+            environment: ingestEnvironment,
+            readFlagSnapshot: () => {
+              const s = getSwitch();
+              if (!s) return undefined;
+              const out: Record<string, string> = {};
+              for (const k of s.getAllKeys()) {
+                const d = s.getDecision(k);
+                if (d) out[k] = d.variant ?? String(d.value);
+              }
+              return Object.keys(out).length ? out : undefined;
+            },
+            readConfigSnapshot: () => {
+              const c = getConfig();
+              const all = c?.getAll();
+              return all && Object.keys(all).length ? all : undefined;
+            },
+          }),
         ];
         if (replayEnabled) plugins.push(sessionReplayPlugin() as never);
 
@@ -176,6 +200,38 @@ export default function App() {
     });
   };
 
+  // ── Catch — smoke test the error-tracking path ──
+  // These three buttons exercise the three entry points Catch
+  // supports. The events flow to /api/catch/events and appear in the
+  // dashboard's Issues list under the fingerprint they group into.
+  const handleThrowUncaught = () => {
+    // Fired as an uncaught exception so the global handler catches it.
+    setTimeout(() => {
+      throw new Error(`Uncaught test error @ ${new Date().toISOString()}`);
+    }, 0);
+  };
+
+  const handleRejectedPromise = () => {
+    void Promise.reject(new Error(`Unhandled rejection test @ ${new Date().toISOString()}`));
+  };
+
+  const handleCaptureException = async () => {
+    await runAction("Capture handled exception", async () => {
+      try {
+        const payload: { id?: string } = {};
+        // Force a runtime error for demo purposes.
+        // @ts-expect-error — intentional synthetic error
+        payload.id.toUpperCase();
+      } catch (e) {
+        getCatch()?.captureException(e, {
+          tags: { area: "demo" },
+          extra: { hint: "the payload had no id field" },
+        });
+      }
+      await getCatch()?.flush();
+    });
+  };
+
   return (
     <main className="shell">
       <section className="panel hero">
@@ -242,6 +298,38 @@ export default function App() {
             {initializing ? "Mounting..." : "Remount SDK"}
           </button>
         </div>
+      </section>
+
+      <section className="panel">
+        <div style={{ marginBottom: 24 }}>
+          <h2 style={{ margin: "0 0 8px", fontSize: "1.5rem" }}>Sankofa Catch — smoke tests</h2>
+          <p className="lede" style={{ fontSize: "0.95rem", marginBottom: 0 }}>
+            Fire synthetic errors through the three Catch entry points. Each one flows to{" "}
+            <code>/api/catch/events</code> as a <code>CatchEvent</code> and surfaces in the
+            dashboard's Issues list — grouped by fingerprint, tagged with the live flag + config
+            snapshot.
+          </p>
+        </div>
+        <div className="actions">
+          <button disabled={!ready} onClick={handleThrowUncaught}>
+            Throw uncaught error
+          </button>
+          <button className="secondary" disabled={!ready} onClick={handleRejectedPromise}>
+            Reject promise
+          </button>
+          <button className="ghost" disabled={!ready} onClick={handleCaptureException}>
+            captureException()
+          </button>
+        </div>
+
+        <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <h3 style={{ margin: "0 0 8px", fontSize: "1.05rem" }}>Full crash gallery</h3>
+          <p className="lede" style={{ fontSize: "0.9rem", marginBottom: 0 }}>
+            One button per realistic frontend error class. Click a card to produce a distinct event shape
+            in the Issues list — grouped by fingerprint with full breadcrumb trail.
+          </p>
+        </div>
+        <CatchCrashGallery disabled={!ready} />
       </section>
 
       <section className="panel">

@@ -293,3 +293,52 @@ code {
     gap: 16px;
   }
 }
+
+/* ── Catch crash gallery (added for comprehensive error demos) ── */
+.crash-gallery-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .crash-gallery-grid { grid-template-columns: 1fr; }
+}
+.crash-gallery-card {
+  background: rgba(225, 29, 72, 0.06);
+  color: #fecaca;
+  border: 1px solid rgba(225, 29, 72, 0.35);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.crash-gallery-card:hover:not(:disabled) {
+  border-color: #f87171;
+  background: rgba(225, 29, 72, 0.14);
+  color: #ffffff;
+}
+.crash-gallery-card:disabled { opacity: 0.5; cursor: not-allowed; }
+.crash-gallery-card small {
+  display: block;
+  font-weight: 400;
+  color: rgba(252, 202, 202, 0.7);
+  margin-top: 4px;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+}
+.crash-gallery-status {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  color: rgba(255, 255, 255, 0.6);
+  min-height: 36px;
+}

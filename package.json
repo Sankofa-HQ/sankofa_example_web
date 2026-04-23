@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@sankofa/browser": "file:../../sdks/sankofa_sdk_web/packages/browser",
+    "@sankofa/catch": "file:../../sdks/sankofa_sdk_web/packages/catch",
     "@sankofa/config": "file:../../sdks/sankofa_sdk_web/packages/config",
     "@sankofa/replay-rrweb": "file:../../sdks/sankofa_sdk_web/packages/replay-rrweb",
     "@sankofa/switch": "file:../../sdks/sankofa_sdk_web/packages/switch",
