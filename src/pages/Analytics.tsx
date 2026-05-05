@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sankofa, type SankofaPropertyMap } from "@sankofa/browser";
 import { useSankofa } from "../lib/SankofaProvider";
 import { ActivityFeed } from "../components/ActivityFeed";
+import { TransportHealth } from "../components/TransportHealth";
 
 type Product = {
   id: string;
@@ -143,6 +144,8 @@ export function AnalyticsPage() {
           KPIs in the header tick up as events queue.
         </p>
       </section>
+
+      <TransportHealth />
 
       <section className="panel">
         <div className="panel-head">

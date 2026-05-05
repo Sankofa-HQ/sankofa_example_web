@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Sankofa } from "@sankofa/browser";
 import { useSankofa } from "../lib/SankofaProvider";
 import { ActivityFeed } from "../components/ActivityFeed";
+import { TransportHealth } from "../components/TransportHealth";
 import { NAV_ITEMS } from "../components/Layout";
 
 const FEATURES = [
@@ -108,6 +109,8 @@ export function OverviewPage() {
           </div>
         )}
       </section>
+
+      <TransportHealth />
 
       <section className="panel">
         <div className="panel-head">

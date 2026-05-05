@@ -13,6 +13,7 @@ import {
   resolveBatchUrl,
   resolveReplayChunkUrl,
   type SankofaClientSnapshot,
+  type TransportStatus,
 } from "@sankofa/browser";
 import { rrwebReplayPlugin as sessionReplayPlugin } from "@sankofa/replay-rrweb";
 import { switchPlugin, getSwitch } from "@sankofa/switch";
@@ -42,6 +43,7 @@ export interface SankofaContextValue {
   errorMessage: string | null;
   initializing: boolean;
   snapshot: SankofaClientSnapshot | null;
+  transport: TransportStatus | null;
   activity: ActivityEntry[];
   counters: {
     events: number;
@@ -180,6 +182,7 @@ export function SankofaProvider({ children }: { children: ReactNode }) {
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<SankofaClientSnapshot | null>(null);
+  const [transport, setTransport] = useState<TransportStatus | null>(null);
   const [initializing, setInitializing] = useState(false);
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
   const [retryToken, setRetryToken] = useState(0);
@@ -217,6 +220,8 @@ export function SankofaProvider({ children }: { children: ReactNode }) {
   // recordActivity without re-running the whole bootstrap.
   const recordRef = useRef(recordActivity);
   recordRef.current = recordActivity;
+
+  const unsubscribeTransportRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -272,9 +277,41 @@ export function SankofaProvider({ children }: { children: ReactNode }) {
           flushIntervalMs: 2_000,
           plugins,
         });
+
+        // Subscribe to transport status BEFORE the first flush so the
+        // very first attempt's outcome (success or CORS / 401 / DNS)
+        // is visible to the host UI immediately.
+        const initialStatus = Sankofa.getTransportStatus();
+        if (initialStatus) setTransport(initialStatus);
+        const unsubTransport = Sankofa.onTransportStatus((next) => {
+          if (cancelled) return;
+          setTransport(next);
+          if (next.lastResult === "error" && next.lastError) {
+            recordRef.current({
+              kind: "error",
+              label: `flush failed (${next.lastFailureKind ?? "error"})`,
+              detail: next.lastError,
+              payload: {
+                status: next.lastStatus,
+                kind: next.lastFailureKind,
+                batchUrl: next.batchUrl,
+              },
+            });
+          }
+        });
+
         await Sankofa.flush({ reason: "manual" });
 
-        if (cancelled) return;
+        if (cancelled) {
+          unsubTransport();
+          return;
+        }
+
+        // Stash the unsubscriber on the cleanup path. The outer
+        // useEffect's cleanup runs Sankofa.shutdown() but the listener
+        // set lives on the queue manager — explicit removal here keeps
+        // it tidy for the remount path.
+        unsubscribeTransportRef.current = unsubTransport;
 
         setSnapshot(Sankofa.getSnapshot());
         setStatus("ready");
@@ -304,6 +341,9 @@ export function SankofaProvider({ children }: { children: ReactNode }) {
     void initialize();
     return () => {
       cancelled = true;
+      unsubscribeTransportRef.current?.();
+      unsubscribeTransportRef.current = null;
+      setTransport(null);
       void Sankofa.shutdown();
     };
   }, [apiKey, endpoint, replayEnabled, ingestEnvironment, retryToken, sdkEnabled]);
@@ -342,6 +382,7 @@ export function SankofaProvider({ children }: { children: ReactNode }) {
       errorMessage,
       initializing,
       snapshot,
+      transport,
       activity,
       counters,
       refresh,
@@ -367,6 +408,7 @@ export function SankofaProvider({ children }: { children: ReactNode }) {
       errorMessage,
       initializing,
       snapshot,
+      transport,
       activity,
       counters,
       refresh,
