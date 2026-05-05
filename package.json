@@ -12,6 +12,7 @@
     "@sankofa/browser": "file:../../sdks/sankofa_sdk_web/packages/browser",
     "@sankofa/catch": "file:../../sdks/sankofa_sdk_web/packages/catch",
     "@sankofa/config": "file:../../sdks/sankofa_sdk_web/packages/config",
+    "@sankofa/pulse": "file:../../sdks/sankofa_sdk_web/packages/pulse",
     "@sankofa/replay-rrweb": "file:../../sdks/sankofa_sdk_web/packages/replay-rrweb",
     "@sankofa/switch": "file:../../sdks/sankofa_sdk_web/packages/switch",
     "pako": "^2.1.0",

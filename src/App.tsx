@@ -9,8 +9,10 @@ import { rrwebReplayPlugin as sessionReplayPlugin } from "@sankofa/replay-rrweb"
 import { switchPlugin, getSwitch } from "@sankofa/switch";
 import { configPlugin, getConfig } from "@sankofa/config";
 import { catchPlugin, getCatch } from "@sankofa/catch";
+import { pulsePlugin } from "@sankofa/pulse";
 import { FlagsLabPanel } from "./FlagsLabPanel";
 import { CatchCrashGallery } from "./CatchCrashGallery";
+import { PulseLabPanel } from "./PulseLabPanel";
 import { DEMO_FLAG_DEFAULTS, DEMO_CONFIG_DEFAULTS } from "./sankofaDemo";
 
 export default function App() {
@@ -76,6 +78,26 @@ export default function App() {
               const all = c?.getAll();
               return all && Object.keys(all).length ? all : undefined;
             },
+          }),
+          // Pulse — surveys + targeting + branching + lifecycle
+          // events. The PulseLabPanel below drives every public
+          // surface (show, getActiveMatchingSurveys, on(...)).
+          // defaultFlagValues forwards Switch's cached decisions so
+          // any feature_flag-tied survey can evaluate without a
+          // re-fetch.
+          pulsePlugin({
+            defaultFlagValues: (() => {
+              const s = getSwitch();
+              if (!s) return undefined;
+              const out: Record<string, unknown> = {};
+              for (const k of s.getAllKeys()) {
+                const d = s.getDecision(k);
+                if (d) {
+                  out[k] = d.variant && d.variant.length > 0 ? d.variant : d.value;
+                }
+              }
+              return Object.keys(out).length ? out : undefined;
+            })(),
           }),
         ];
         if (replayEnabled) plugins.push(sessionReplayPlugin() as never);
@@ -403,6 +425,8 @@ export default function App() {
           refreshSnapshot();
         }}
       />
+
+      <PulseLabPanel ready={ready} />
 
       <section className="panel snapshot">
         <div className="snapshot-header">

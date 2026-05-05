@@ -25,6 +25,36 @@ export const DEMO_CONFIG = {
   THEME_COLORS: "theme_colors",
 } as const;
 
+// Demo Pulse survey IDs — match what `seed_pulse` (server-side
+// command) publishes against the demo project. If the server hasn't
+// been seeded yet the lab surfaces a "survey not found" message so
+// the host can re-run `go run ./cmd/seed_pulse`.
+export const DEMO_SURVEYS = {
+  NPS_AFTER_CHECKOUT: "psv_demo_nps_checkout",
+  CSAT_SUPPORT: "psv_demo_csat_support",
+  PRODUCT_RESEARCH: "psv_demo_product_research",
+} as const;
+
+export const DEMO_SURVEY_META: Record<
+  string,
+  { title: string; description: string }
+> = {
+  [DEMO_SURVEYS.NPS_AFTER_CHECKOUT]: {
+    title: "Post-checkout NPS",
+    description:
+      "Score 0–10. Detractors get a 'what went wrong' follow-up via branching.",
+  },
+  [DEMO_SURVEYS.CSAT_SUPPORT]: {
+    title: "Support CSAT",
+    description: "Single 1–5 star rating. Smallest possible survey.",
+  },
+  [DEMO_SURVEYS.PRODUCT_RESEARCH]: {
+    title: "Product research (gated)",
+    description:
+      "Multi-question. Targeting rule requires user_property 'plan' = 'pro'.",
+  },
+};
+
 export type PricingTier = { name: string; price: number; features: string[] };
 export type ThemeColors = { primary: string; accent: string };
 
