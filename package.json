@@ -18,6 +18,7 @@
     "pako": "^2.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-router-dom": "^7.15.0",
     "rrweb": "^2.0.0-alpha.18"
   },
   "devDependencies": {
