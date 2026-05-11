@@ -237,23 +237,14 @@ export function SankofaProvider({ children }: { children: ReactNode }) {
         const plugins = [
           switchPlugin({ defaults: DEMO_FLAG_DEFAULTS }),
           configPlugin({ defaults: DEMO_CONFIG_DEFAULTS }),
+          // catchPlugin auto-discovers Switch + Config from the
+          // cross-module registry — no `readFlagSnapshot` /
+          // `readConfigSnapshot` boilerplate needed when those
+          // plugins are already in `plugins[]` above. Pass the
+          // explicit closures only when you want a filtered or
+          // computed snapshot.
           catchPlugin({
             environment: ingestEnvironment,
-            readFlagSnapshot: () => {
-              const s = getSwitch();
-              if (!s) return undefined;
-              const out: Record<string, string> = {};
-              for (const k of s.getAllKeys()) {
-                const d = s.getDecision(k);
-                if (d) out[k] = d.variant ?? String(d.value);
-              }
-              return Object.keys(out).length ? out : undefined;
-            },
-            readConfigSnapshot: () => {
-              const c = getConfig();
-              const all = c?.getAll();
-              return all && Object.keys(all).length ? all : undefined;
-            },
           }),
           pulsePlugin({
             defaultFlagValues: (() => {
