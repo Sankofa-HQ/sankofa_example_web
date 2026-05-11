@@ -245,6 +245,25 @@ export function SankofaProvider({ children }: { children: ReactNode }) {
           // computed snapshot.
           catchPlugin({
             environment: ingestEnvironment,
+            // 🚀 Phase B — beforeSend hook. Runs AFTER an event is
+            // composed but BEFORE the transport sends. Return null to
+            // drop entirely; return the event (possibly mutated) to
+            // ship it. Throws swallowed.
+            //   1. Drop events whose message contains "[noise]" —
+            //      framework warnings you can't fix (ResizeObserver
+            //      loop limit, etc.).
+            //   2. Scrub `user_email` from `extra` so PII doesn't
+            //      leak to the dashboard.
+            beforeSend: (event) => {
+              if (event.message?.includes("[noise]")) return null;
+              if (event.extra && "user_email" in event.extra) {
+                return {
+                  ...event,
+                  extra: { ...event.extra, user_email: "[redacted]" },
+                };
+              }
+              return event;
+            },
           }),
           pulsePlugin({
             defaultFlagValues: (() => {

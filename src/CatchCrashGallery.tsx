@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Sankofa } from "@sankofa/browser";
 import { getCatch } from "@sankofa/catch";
 
 /**
@@ -206,6 +207,94 @@ export function CatchCrashGallery({ disabled }: { disabled: boolean }) {
                             tags: { flow: "add-to-cart", retriable: "true" },
                         });
                     }
+                },
+            },
+
+            // ── Phase A static helpers + Phase B withScope/beforeSend ──
+            {
+                id: "phase-a-log",
+                title: "Sankofa.log() — Crashlytics-style breadcrumb",
+                detail: "log() pushes a free-text crumb; the next captureException attaches it",
+                run: () => {
+                    Sankofa.log("user opened payment flow", "navigation");
+                    Sankofa.log("cart total: 49.00 USD", "commerce");
+                    Sankofa.log("tapped pay button", "user-action");
+                    try {
+                        throw new Error("payment gateway returned no token");
+                    } catch (err) {
+                        // The three log() entries above ride along on
+                        // this event's breadcrumb trail.
+                        Sankofa.captureException(err);
+                    }
+                },
+            },
+            {
+                id: "phase-b-with-scope",
+                title: "Phase B — withScope (temporary overlay)",
+                detail: "tags + level + extras attached to ONE capture only",
+                run: () => {
+                    Sankofa.withScope((scope) => {
+                        scope.setTag("checkout_step", "payment");
+                        scope.setTag("payment_method", "stripe");
+                        scope.setExtra("cart_id", "cart_8x92Lq");
+                        scope.setExtra("cart_value_cents", 4900);
+                        scope.setLevel("warning");
+                        scope.setFingerprint(["checkout", "payment", "manual"]);
+                        try {
+                            throw new Error("payment gateway timeout — retried 3x");
+                        } catch (err) {
+                            // Only this capture carries the scope's
+                            // extras + level.
+                            Sankofa.captureException(err);
+                        }
+                    });
+                    // Subsequent captures lose the scope.
+                    Sankofa.captureMessage("post-scope event — no checkout_step tag");
+                },
+            },
+            {
+                id: "phase-b-with-scope-nested",
+                title: "Phase B — withScope (nested scopes)",
+                detail: "inner scope inherits + extends the outer at capture time",
+                run: () => {
+                    Sankofa.withScope((outer) => {
+                        outer.setTag("feature", "billing");
+                        outer.setExtra("checkout_session", "sess_12345");
+                        Sankofa.withScope((inner) => {
+                            inner.setTag("substep", "card-validation");
+                            inner.setExtra("attempt", 2);
+                            try {
+                                throw new TypeError("invalid card number checksum");
+                            } catch (err) {
+                                // Carries BOTH feature=billing (outer)
+                                // AND substep=card-validation (inner).
+                                Sankofa.captureException(err);
+                            }
+                        });
+                        // After inner pops, only outer's tags apply.
+                        Sankofa.captureMessage("still in outer scope (no substep)");
+                    });
+                },
+            },
+            {
+                id: "phase-b-before-send",
+                title: "Phase B — beforeSend (see SankofaProvider.tsx)",
+                detail: "fires events the hook should drop or scrub",
+                run: () => {
+                    // 1. "[noise]" → beforeSend returns null → dropped.
+                    Sankofa.captureMessage("[noise] framework warning — drop me");
+                    // 2. PII scrubbed — beforeSend rewrites user_email
+                    //    before the event leaves the browser.
+                    Sankofa.captureMessage(
+                        "checkout failure — beforeSend should scrub user_email",
+                        {
+                            level: "info",
+                            extra: {
+                                user_email: "ada@example.com",
+                                note: "beforeSend should redact user_email",
+                            },
+                        },
+                    );
                 },
             },
         ],

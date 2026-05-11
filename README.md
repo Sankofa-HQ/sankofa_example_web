@@ -1,64 +1,100 @@
 # Sankofa Web Sandbox (React + Vite)
 
-A modern, interactive sandbox for testing the **Sankofa Web SDK**. This example project demonstrates how to integrate real-time product analytics and high-fidelity session replays into a React application.
+A modern, interactive sandbox for the **Sankofa Web SDK**. Exercises every product the web suite ships — Analytics, Catch (Crashlytics + Sentry merged), Switch, Config, Pulse, Replay (rrweb) — against a local or remote Sankofa engine.
 
 ---
 
 ## ✨ Features
 
-- **Interactive Sandbox**: Test event tracking and identity management in a live, visual environment.
-- **Identity Resolution**: Complete flows for `identify()`, `setPerson()`, and `reset()`, allowing you to merge behavioral data with customer profiles dynamically.
-- **Session Replay (RRWeb)**: High-fidelity session recording integrated with the SDK. The sandbox provides a real-time status indicator for the recording service.
-- **Runtime Diagnostics**: A "Diagnostic Snapshot" view that shows the current internal state of the Sankofa client, including queued events and identity data.
-- **Automated Pageview Tracking**: Demonstrates how the SDK automatically captures pageviews upon initialization.
-- **Tailwind-Powered UI**: A clean, premium design with a dedicated dashboard for testing different tracking scenarios.
+- **Analytics sandbox** — track / identify / setPerson / reset with a live diagnostic snapshot.
+- **Catch crash gallery** — 13+ realistic frontend crash classes (TypeError, ReferenceError, unhandled promise, fetch error, JSON-parse on HTML, stack overflow, custom business errors) plus `Sankofa.log()`, `withScope` (single + nested), and `beforeSend` demos.
+- **Flags + Config lab** — live decision tables for every demo flag + config key with onChange listeners.
+- **Pulse lab** — triggers + previews the in-app survey runtime.
+- **Session Replay (rrweb)** — high-fidelity capture with the `rrwebReplayPlugin`. Real-time status indicator in the UI.
+- **Runtime diagnostics** — diagnostic snapshot view shows the SDK's queue, identity, and module state.
 
 ---
 
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
+
 - **Node.js 20+**
 - **NPM** or **Yarn**
-- **Sankofa Engine** (Running locally on port 8080)
+- **Sankofa Engine** running locally on port 8080
 
 ### 2. Setup
-Copy the example environment file and install dependencies:
+
 ```bash
 cp .env.example .env.local
 npm install --legacy-peer-deps
 ```
 
 ### 3. Configuration
-Edit `.env.local` and add your project's API key:
+
+Edit `.env.local`:
+
 ```env
 VITE_SANKOFA_API_KEY=your_project_api_key_here
 VITE_SANKOFA_ENDPOINT=http://localhost:8080
 ```
 
-### 4. Run Development Server
+### 4. Run
+
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to access the interactive sandbox.
+Open [http://localhost:5173](http://localhost:5173).
 
 ---
 
-## 📂 Key Code References
+## 🔍 What it demonstrates
 
-- **Initialization Loop**: See the `useEffect` hook in `src/App.tsx` for how the SDK is dynamically mounted and unmounted.
-- **Event Tracking**: Explore `handleTrack` to see custom event payloads with properties.
-- **Identity Management**: Check `handleIdentify` and `handlePeopleSet` for examples of setting customer traits (email, name, company, avatar).
-- **Session Replay Integration**: See how the `rrwebReplayPlugin` is passed to the SDK during initialization.
+### Phase B `beforeSend` (`src/lib/SankofaProvider.tsx`)
+
+`catchPlugin({ beforeSend: ... })` is wired at init:
+
+- Drops events whose message contains `"[noise]"`.
+- Scrubs `user_email` from `extra`.
+
+### Phase A / B demos (`src/CatchCrashGallery.tsx`)
+
+Buttons covering:
+
+- **`Sankofa.log()`** — Crashlytics-style breadcrumb that rides on the next captured exception.
+- **`withScope` (single)** — tags + level + extras attached to ONE capture only.
+- **`withScope` (nested)** — inner scope inherits + extends outer scope tags.
+- **`beforeSend` demo** — fires events the configured hook should drop or scrub.
+
+Every Catch scenario carries the active `flag_snapshot` + `config_snapshot` from `@sankofa/switch` + `@sankofa/config` automatically — the dashboard shows which flags were ON when an error fired with no host wiring.
 
 ---
 
-## 🔧 CORS Note
-If you are running this example locally, ensure the Go Engine's `CORS_ALLOWED_ORIGINS` includes `http://localhost:5173`. Otherwise, the browser may block event uploads.
+## 📂 Key code references
+
+| File | What |
+|---|---|
+| `src/lib/SankofaProvider.tsx` | `Sankofa.init` + every plugin (`switchPlugin`, `configPlugin`, `catchPlugin` with `beforeSend`, `pulsePlugin`, `rrwebReplayPlugin`). |
+| `src/CatchCrashGallery.tsx` | All Catch scenarios including Phase A/B. |
+| `src/pages/Overview.tsx` | Analytics sandbox + diagnostic snapshot. |
+| `src/pages/Flags.tsx` | Live Switch + Config decision tables. |
+| `src/PulseLabPanel.tsx` | Pulse survey runtime. |
+
+---
+
+## 🔧 CORS
+
+Make sure the Go engine's `CORS_ALLOWED_ORIGINS` includes `http://localhost:5173`. Otherwise the browser blocks event uploads.
+
+---
+
+## Documentation
+
+Full Web SDK reference: [docs.sankofa.dev/sdks/web](https://docs.sankofa.dev/sdks/web/overview).
 
 ---
 
 ## 🛡 License
 
-This project is licensed under the MIT License.
+MIT.
