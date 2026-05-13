@@ -44,14 +44,25 @@ export function Layout() {
   // SPAs do — Sankofa SDK history-aware autocapture handles this in
   // real apps; here we make it explicit so it's visible in the activity
   // log on every navigation.
+  //
+  // We also fire `Sankofa.screen(...)` so the dedicated heatmap-snapshot
+  // path triggers per route. The snapshotter dedupes per
+  // (screen, viewport-bucket) per session, so this is cheap to call on
+  // every navigation and produces one high-fidelity page raster per
+  // unique route visited.
   useEffect(() => {
     if (sankofa.status !== "ready") return;
     const path = location.pathname;
     const item = NAV_ITEMS.find((n) => n.to === path);
+    const screenName = item?.label ?? path;
     void Sankofa.track("$pageview", {
       $current_url: window.location.href,
       $pathname: path,
       $title: item?.label ?? document.title,
+    });
+    void Sankofa.screen(screenName, {
+      $pathname: path,
+      $current_url: window.location.href,
     });
     sankofa.recordActivity({
       kind: "event",
